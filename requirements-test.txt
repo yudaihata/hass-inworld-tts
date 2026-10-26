@@ -1,0 +1,11 @@
+homeassistant==2026.1.3
+pytest>=8.3,<10
+pytest-asyncio>=0.24,<2
+ruff>=0.9
+mutagen==1.47.0
+ha-ffmpeg==3.2.2
+# Keep HA's cloud dependency on the release tested with this HA baseline.
+litellm==1.80.0
+# Match the Bluetooth dependency generation supported by this HA baseline.
+habluetooth==3.49.0
+bluetooth-data-tools==1.28.4

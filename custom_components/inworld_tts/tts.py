@@ -4,7 +4,7 @@ from __future__ import annotations
 
 import base64
 import logging
-from typing import Any
+from typing import Any, ClassVar
 
 from homeassistant.components.tts import (
     ATTR_VOICE,
@@ -17,6 +17,7 @@ from homeassistant.exceptions import HomeAssistantError
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.device_registry import DeviceEntryType, DeviceInfo
 from homeassistant.helpers.entity_platform import AddConfigEntryEntitiesCallback
+
 from . import InworldTTSConfigEntry
 from .const import (
     CONF_MODEL,
@@ -30,7 +31,8 @@ from .const import (
 
 _LOGGER = logging.getLogger(__name__)
 
-# All languages supported by Inworld TTS 1.5 models
+# Tier 1 languages, also supported by the legacy TTS 1.5 models.
+# https://docs.inworld.ai/tts/capabilities/multilingual
 SUPPORTED_LANGUAGES = [
     "en",
     "zh",
@@ -77,7 +79,7 @@ async def async_setup_entry(
             if voice_id:
                 voices.append(Voice(voice_id=voice_id, name=display_name))
         voices.sort(key=lambda v: v.name.lower())
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.exception("Could not fetch Inworld AI voices at setup")
 
     _LOGGER.debug("Inworld AI TTS: setup with %d voices, model=%s", len(voices), model)
@@ -96,7 +98,7 @@ async def async_setup_entry(
 class InworldTTSEntity(TextToSpeechEntity):
     """The Inworld AI TTS entity."""
 
-    _attr_supported_options = [ATTR_VOICE]
+    _attr_supported_options: ClassVar[list[str]] = [ATTR_VOICE]
 
     def __init__(
         self,
@@ -144,11 +146,12 @@ class InworldTTSEntity(TextToSpeechEntity):
                 },
                 json={
                     "text": message,
-                    "voice_id": voice_id,
-                    "model_id": self._model,
-                    "audio_config": {
-                        "audio_encoding": "LINEAR16",
-                        "sample_rate_hertz": SAMPLE_RATE_HZ,
+                    "voiceId": voice_id,
+                    "modelId": self._model,
+                    "language": language,
+                    "audioConfig": {
+                        "audioEncoding": "LINEAR16",
+                        "sampleRateHertz": SAMPLE_RATE_HZ,
                     },
                 },
             ) as resp:

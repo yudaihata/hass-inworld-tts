@@ -6,9 +6,9 @@ import logging
 from typing import Any
 
 import voluptuous as vol
-
 from homeassistant.config_entries import ConfigFlow, ConfigFlowResult, OptionsFlow
 from homeassistant.const import CONF_API_KEY
+from homeassistant.core import callback
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 from homeassistant.helpers.selector import (
     SelectOptionDict,
@@ -44,7 +44,7 @@ async def _validate_api_key(hass, api_key: str) -> str | None:
             if resp.status not in (200, 201):
                 _LOGGER.debug("Inworld voices API returned HTTP %s", resp.status)
                 return "unknown"
-    except Exception:  # noqa: BLE001
+    except Exception:
         _LOGGER.exception("Error connecting to Inworld AI")
         return "cannot_connect"
     return None
@@ -93,9 +93,10 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):
         )
 
     @staticmethod
+    @callback
     def async_get_options_flow(config_entry: InworldTTSConfigEntry) -> OptionsFlow:
         """Create the options flow."""
-        return InworldTTSOptionsFlow(config_entry)
+        return InworldTTSOptionsFlow()
 
 
 class InworldTTSOptionsFlow(OptionsFlow):

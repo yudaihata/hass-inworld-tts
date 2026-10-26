@@ -4,15 +4,17 @@
 
 # Inworld AI TTS for Home Assistant
 
+A fork of [notf0und/hass-inworld-tts](https://github.com/notf0und/hass-inworld-tts), updated for **Inworld TTS-2 and TTS-2 Flash**.
+
 A Home Assistant integration for [Inworld AI Text-to-Speech (TTS)](https://platform.inworld.ai/).
 
 
-[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=notf0und&repository=hass-inworld-tts&category=Integration)
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=yudaihata&repository=hass-inworld-tts&category=Integration)
 
 
-[![GitHub Release](https://img.shields.io/github/release/notf0und/hass-inworld-tts.svg?style=flat-square)](https://github.com/notf0und/hass-inworld-tts/releases)
-[![GitHub Activity](https://img.shields.io/github/commit-activity/y/notf0und/hass-inworld-tts.svg?style=flat-square)](https://github.com/notf0und/hass-inworld-tts/commits/main)
-[![License](https://img.shields.io/github/license/notf0und/hass-inworld-tts.svg?style=flat-square)](LICENSE)
+[![GitHub Release](https://img.shields.io/github/release/yudaihata/hass-inworld-tts.svg?style=flat-square)](https://github.com/yudaihata/hass-inworld-tts/releases)
+[![GitHub Activity](https://img.shields.io/github/commit-activity/y/yudaihata/hass-inworld-tts.svg?style=flat-square)](https://github.com/yudaihata/hass-inworld-tts/commits/main)
+[![License](https://img.shields.io/github/license/yudaihata/hass-inworld-tts.svg?style=flat-square)](LICENSE)
 [![Home Assistant](https://img.shields.io/badge/Home%20Assistant-2026.1+-blue?style=flat-square)](https://www.home-assistant.io)
 [![HACS](https://img.shields.io/badge/HACS-Custom-orange?style=flat-square)](https://hacs.xyz/)
 
@@ -27,7 +29,7 @@ A Home Assistant integration for [Inworld AI Text-to-Speech (TTS)](https://platf
 - 🔐 Secure API key management
 - ☁️ Cloud-based processing
 - 🌍 Support for 15 languages
-- 🚀 Choose between TTS 1.5 Max (best quality) and TTS 1.5 Mini (ultra-fast)
+- 🚀 Choose between TTS-2 (best quality) and TTS-2 Flash (lowest latency), with legacy TTS 1.5 compatibility
 
 ## Installation
 
@@ -37,9 +39,9 @@ Click the button above or follow these steps:
 
 1. Open Home Assistant
 2. Go to **Settings** → **Devices & Services** → **Home Assistant Community Store (HACS)**
-3. Click **Explore & Download Repositories**
-4. Search for **Inworld AI TTS**
-5. Click **Download**
+3. Open the HACS menu → **Custom repositories**
+4. Add `https://github.com/yudaihata/hass-inworld-tts` with type **Integration**
+5. Search for **Inworld AI TTS** and click **Download**
 6. Restart Home Assistant
 
 ### Manual Installation
@@ -56,9 +58,10 @@ Click the button above or follow these steps:
 1. Go to **Settings** → **Devices & Services** → **+ Add Integration**
 2. Search for **Inworld AI TTS**
 3. Enter your [Inworld AI API key](https://platform.inworld.ai/api-keys)
-4. Select the TTS model (`TTS 1.5 Max` or `TTS 1.5 Mini`)
-5. Optionally set a default voice ID (e.g. `Dennis`)
-6. Click **Submit**
+4. Select **TTS-2** (default) or **TTS-2 Flash**
+5. Click **Submit**
+
+For an existing integration, open **Configure** to change the model. Existing TTS 1.5 selections are preserved; switch explicitly to use TTS-2. Select a voice in your Assist pipeline or pass `options: {voice: Dennis}` to `tts.speak`.
 
 ## Usage
 
@@ -111,16 +114,33 @@ Or add it to your voice assistant pipeline:
 
 | Model | ID | Description |
 |-------|----|-------------|
-| TTS 1.5 Max | `inworld-tts-1.5-max` | Flagship model, best balance of quality and speed |
-| TTS 1.5 Mini | `inworld-tts-1.5-mini` | Ultra-fast, most cost-efficient |
+| TTS-2 | `inworld-tts-2` | Default; highest quality and expressiveness |
+| TTS-2 Flash | `inworld-tts-2-flash` | Lowest latency |
+| TTS 1.5 Max | `inworld-tts-1.5-max` | Legacy; retained for existing configurations |
+| TTS 1.5 Mini | `inworld-tts-1.5-mini` | Legacy; retained for existing configurations |
+
+See the [official model documentation](https://docs.inworld.ai/tts/tts-models). The integration uses the [synchronous API](https://docs.inworld.ai/api-reference/ttsAPI/texttospeech/synthesize-speech), returns WAV audio, and sends the selected language explicitly. Requests are limited by the API to 2,000 UTF-16 code units.
 
 ## Supported Languages
 
+The integration exposes the 15 Tier 1 languages in Home Assistant (the models themselves support more):
+
 English, Chinese, Japanese, Korean, Russian, Italian, Spanish, Portuguese, French, German, Polish, Dutch, Hindi, Hebrew, Arabic.
+
+## Development
+
+The regression suite uses Home Assistant 2026.1.3 and Python 3.13 on Linux:
+
+```bash
+python3 -m venv .venv
+.venv/bin/pip install -r requirements-test.txt
+.venv/bin/python -m pytest -q
+.venv/bin/ruff check custom_components tests
+```
 
 ## Support
 
-For issues or feature requests, please visit the [GitHub Issues](https://github.com/notf0und/hass-inworld-tts/issues) page.
+For issues or feature requests, please visit the [GitHub Issues](https://github.com/yudaihata/hass-inworld-tts/issues) page.
 
 ## Contributing
 

@@ -2,8 +2,8 @@
 
 from __future__ import annotations
 
-from dataclasses import dataclass
 import logging
+from dataclasses import dataclass
 
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.const import CONF_API_KEY, Platform
@@ -30,7 +30,7 @@ type InworldTTSConfigEntry = ConfigEntry[InworldTTSData]
 
 async def async_setup_entry(hass: HomeAssistant, entry: InworldTTSConfigEntry) -> bool:
     """Set up Inworld AI TTS from a config entry."""
-    entry.add_update_listener(update_listener)
+    entry.async_on_unload(entry.add_update_listener(update_listener))
 
     api_key = entry.data[CONF_API_KEY]
 
