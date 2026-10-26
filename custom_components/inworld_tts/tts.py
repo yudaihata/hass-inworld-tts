@@ -25,13 +25,12 @@ from .const import (
     DEFAULT_VOICE,
     DOMAIN,
     INWORLD_TTS_API_URL,
-    INWORLD_VOICES_API_URL,
     MODELS,
 )
 
 _LOGGER = logging.getLogger(__name__)
 
-# Tier 1 languages, also supported by the legacy TTS 1.5 models.
+# Tier 1 TTS languages exposed in Home Assistant.
 # https://docs.inworld.ai/tts/capabilities/multilingual
 SUPPORTED_LANGUAGES = [
     "en",
@@ -63,26 +62,8 @@ async def async_setup_entry(
     api_key = config_entry.runtime_data.api_key
     model = config_entry.options.get(CONF_MODEL, DEFAULT_MODEL)
 
-    # Fetch available voices once at setup so the pipeline dropdown is populated
-    voices: list[Voice] = []
-    session = async_get_clientsession(hass)
-    try:
-        async with session.get(
-            INWORLD_VOICES_API_URL,
-            headers={"Authorization": f"Basic {api_key}"},
-        ) as resp:
-            resp.raise_for_status()
-            data = await resp.json()
-        for v in data.get("voices", []):
-            voice_id = v.get("voiceId")
-            display_name = v.get("displayName") or voice_id
-            if voice_id:
-                voices.append(Voice(voice_id=voice_id, name=display_name))
-        voices.sort(key=lambda v: v.name.lower())
-    except Exception:
-        _LOGGER.exception("Could not fetch Inworld AI voices at setup")
+    voices = config_entry.runtime_data.voices
 
-    _LOGGER.debug("Inworld AI TTS: setup with %d voices, model=%s", len(voices), model)
     async_add_entities(
         [
             InworldTTSEntity(
@@ -104,13 +85,29 @@ class InworldTTSEntity(TextToSpeechEntity):
         self,
         api_key: str,
         model: str,
-        voices: list[Voice],
+        voices: list[dict],
         entry_id: str,
     ) -> None:
         """Initialize the Inworld AI TTS entity."""
         self._api_key = api_key
         self._model = model
-        self._voices = voices
+        self._voices = []
+        self._voice_languages = {}
+        for item in voices:
+            if not (voice_id := item.get("voiceId")):
+                continue
+            self._voices.append(
+                Voice(voice_id=voice_id, name=item.get("displayName") or voice_id)
+            )
+            languages = [
+                item.get("languageCode") or item.get("langCode") or "",
+                *item.get("promptLanguages", []),
+            ]
+            self._voice_languages[voice_id] = {
+                language.replace("_", "-").lower().split("-")[0]
+                for language in languages if language
+            }
+        self._voices.sort(key=lambda voice: (voice.name.casefold(), voice.voice_id))
         self._attr_name = "Inworld AI"
         self._attr_unique_id = entry_id
         self._attr_device_info = DeviceInfo(
@@ -124,14 +121,26 @@ class InworldTTSEntity(TextToSpeechEntity):
         self._attr_default_language = "en"
 
     def async_get_supported_voices(self, language: str) -> list[Voice]:
-        """Return voices fetched at setup time for the pipeline dropdown."""
-        return self._voices
+        """Offer voices with a matching primary or localized prompt language."""
+        language = language.replace("_", "-").lower().split("-")[0]
+        return [
+            voice for voice in self._voices
+            if language in self._voice_languages[voice.voice_id]
+        ]
 
     async def async_get_tts_audio(
         self, message: str, language: str, options: dict[str, Any]
     ) -> TtsAudioType:
         """Synthesize speech using the Inworld AI TTS API."""
-        voice_id = options.get(ATTR_VOICE) or DEFAULT_VOICE
+        voice_id = options.get(ATTR_VOICE)
+        if not voice_id:
+            voices = self.async_get_supported_voices(language)
+            if not voices:
+                raise HomeAssistantError(f"No Inworld voices available for {language}")
+            voice_id = next(
+                (voice.voice_id for voice in voices if voice.voice_id == DEFAULT_VOICE),
+                voices[0].voice_id,
+            )
         _LOGGER.debug(
             "Inworld AI TTS: model=%s voice=%s text=%r", self._model, voice_id, message
         )

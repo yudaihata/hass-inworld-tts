@@ -38,6 +38,7 @@ async def _validate_api_key(hass, api_key: str) -> str | None:
         async with session.get(
             INWORLD_VOICES_API_URL,
             headers={"Authorization": f"Basic {api_key}"},
+            params={"pageSize": 1},
         ) as resp:
             if resp.status in (401, 403):
                 return "invalid_api_key"
@@ -53,7 +54,7 @@ async def _validate_api_key(hass, api_key: str) -> str | None:
 class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):
     """Handle a config flow for Inworld AI TTS."""
 
-    VERSION = 1
+    VERSION = 2
 
     async def async_step_user(
         self, user_input: dict[str, Any] | None = None
@@ -67,7 +68,7 @@ class InworldTTSConfigFlow(ConfigFlow, domain=DOMAIN):
                 errors["base"] = error
             else:
                 return self.async_create_entry(
-                    title="Inworld AI TTS",
+                    title="Inworld AI Speech",
                     data={CONF_API_KEY: user_input[CONF_API_KEY]},
                     options={CONF_MODEL: user_input.get(CONF_MODEL, DEFAULT_MODEL)},
                 )
@@ -107,7 +108,7 @@ class InworldTTSOptionsFlow(OptionsFlow):
     ) -> ConfigFlowResult:
         """Manage the options."""
         if user_input is not None:
-            return self.async_create_entry(title="Inworld AI TTS", data=user_input)
+            return self.async_create_entry(title="Inworld AI Speech", data=user_input)
 
         current_model = self.config_entry.options.get(CONF_MODEL, DEFAULT_MODEL)
 

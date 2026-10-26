@@ -1,6 +1,6 @@
 {
   "domain": "inworld_tts",
-  "name": "Inworld AI TTS",
+  "name": "Inworld AI Speech",
   "codeowners": [
     "@yudaihata"
   ],
@@ -10,5 +10,5 @@
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/yudaihata/hass-inworld-tts/issues",
   "requirements": [],
-  "version": "1.1.0"
+  "version": "1.2.0"
 }

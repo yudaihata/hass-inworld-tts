@@ -9,11 +9,11 @@
       "user": {
         "data": {
           "api_key": "API Key",
-          "model": "Model"
+          "model": "TTS model"
         },
         "data_description": {
-          "api_key": "Base64 API key from the Inworld AI portal (Settings → API Keys → Basic).",
-          "model": "TTS model to use for speech synthesis."
+          "api_key": "Base64 API key from the Inworld AI portal (Settings \u2192 API Keys \u2192 Basic).",
+          "model": "Speech synthesis model. Speech recognition uses Inworld STT-1 with the same API key."
         }
       }
     }
@@ -23,16 +23,21 @@
       "inworld_tts": {
         "name": "Text-to-speech"
       }
+    },
+    "stt": {
+      "inworld_stt": {
+        "name": "Speech-to-text"
+      }
     }
   },
   "options": {
     "step": {
       "init": {
         "data": {
-          "model": "Model"
+          "model": "TTS model"
         },
         "data_description": {
-          "model": "TTS model to use for speech synthesis."
+          "model": "Speech synthesis model. Speech recognition uses Inworld STT-1 with the same API key."
         }
       }
     }
