@@ -231,7 +231,13 @@ async def test_stt_transcription(status, payload, expected, text):
         "modelId": "inworld/inworld-stt-1", "audioEncoding": "LINEAR16",
         "language": "ja", "sampleRateHertz": 16000, "numberOfChannels": 1,
     }
-    assert base64.b64decode(request["json"]["audioData"]["content"]) == pcm
+    uploaded = base64.b64decode(request["json"]["audioData"]["content"])
+    assert uploaded.startswith(b"RIFF")
+    with wave.open(io.BytesIO(uploaded), "rb") as wav_file:
+        assert wav_file.getnchannels() == 1
+        assert wav_file.getsampwidth() == 2
+        assert wav_file.getframerate() == 16000
+        assert wav_file.readframes(wav_file.getnframes()) == pcm
     assert result.result == expected
     assert result.text == text
     assert entity.unique_id == "entry-stt"

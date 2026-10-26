@@ -4,7 +4,9 @@ from __future__ import annotations
 
 import asyncio
 import base64
+import io
 import logging
+import wave
 from collections.abc import AsyncIterable
 
 from aiohttp import ClientTimeout
@@ -102,6 +104,14 @@ class InworldSTTEntity(stt.SpeechToTextEntity):
                     audio.extend(chunk)
             if not audio:
                 return stt.SpeechResult(None, stt.SpeechResultState.ERROR)
+            # Assist supplies headerless PCM even though its format is WAV.
+            # Inworld's synchronous decoder requires a container, unlike WebSocket STT.
+            wav_buffer = io.BytesIO()
+            with wave.open(wav_buffer, "wb") as wav_file:
+                wav_file.setnchannels(int(metadata.channel))
+                wav_file.setsampwidth(int(metadata.bit_rate) // 8)
+                wav_file.setframerate(int(metadata.sample_rate))
+                wav_file.writeframes(audio)
             session = async_get_clientsession(self.hass)
             async with session.post(
                 INWORLD_STT_API_URL,
@@ -117,7 +127,9 @@ class InworldSTTEntity(stt.SpeechToTextEntity):
                         "sampleRateHertz": int(metadata.sample_rate),
                         "numberOfChannels": int(metadata.channel),
                     },
-                    "audioData": {"content": base64.b64encode(audio).decode("ascii")},
+                    "audioData": {
+                        "content": base64.b64encode(wav_buffer.getvalue()).decode("ascii")
+                    },
                 },
                 timeout=ClientTimeout(total=60),
             ) as response:

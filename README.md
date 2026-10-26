@@ -128,7 +128,7 @@ See the [official model documentation](https://docs.inworld.ai/tts/tts-models). 
 
 The integration adds an STT entity automatically alongside TTS; no second API key is needed. Select **Inworld AI** under Speech-to-text in your Assist pipeline.
 
-It uses the [synchronous STT API](https://docs.inworld.ai/api-reference/sttAPI/speechtotext/transcribe). Home Assistant supplies 16 kHz, 16-bit mono PCM. The utterance is buffered until capture ends, then uploaded with the pipeline language as a hint; transcription is returned to Assist. This is utterance-based transcription, without interim transcripts or WebSocket streaming. Capture is limited to 120 seconds and 10 MiB, with a 60-second API timeout. Audio is held in memory, not saved to disk. Audio and text are sent to Inworld for cloud processing.
+It uses the [synchronous STT API](https://docs.inworld.ai/api-reference/sttAPI/speechtotext/transcribe). Home Assistant supplies 16 kHz, 16-bit mono PCM. The utterance is buffered until capture ends, wrapped in a WAV container required by the synchronous API, then uploaded with the pipeline language as a hint; transcription is returned to Assist. This is utterance-based transcription, without interim transcripts or WebSocket streaming. Capture is limited to 120 seconds and 10 MiB, with a 60-second API timeout. Audio is held in memory, not saved to disk. Audio and text are sent to Inworld for cloud processing.
 
 ## Voice language filtering
 
